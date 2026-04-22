@@ -1,14 +1,24 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=TikTok+Sans:opsz,wght@12..36,300..900&display=swap');
 
-@import "tailwindcss";
-
 *{
   font-family: "TikTok Sans", sans-serif;
 }
 
-@theme{
+:root {
   --color-primary: #2563EB;
   --color-primary-dull: #1F58D8;
   --color-light: #f1f5f9;
   --color-borderColor: #c4c7d2;
 }
+
+/* ......cars scrollbar........... */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+
+.active hr{
+  @apply block;
+}
+
+
+@import "tailwindcss";

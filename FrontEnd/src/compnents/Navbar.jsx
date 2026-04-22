@@ -1,86 +1,150 @@
-import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { assets, menuLinks } from "../assets/assets";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useContext } from "react";
+import { assets } from "../assets/assets";
+import { NavLink, useNavigate } from "react-router-dom";
+import { AppContext } from "../context/AppContext";
+import { motion, AnimatePresence } from "framer-motion";
 
-
-function Navbar({ setShowLogin }) {
-  const [open, setOpen] = useState(false);
-  const location = useLocation();
+const Navbar = () => {
   const navigate = useNavigate();
+  const { token, setToken } = useContext(AppContext);
+  const [showMenu, setShowMenu] = useState(false);
+
+  // Animation for the Active Link HR
+  const activeLineVariants = {
+    hidden: { width: 0, opacity: 0 },
+    visible: { width: "60%", opacity: 1, transition: { duration: 0.3 } },
+  };
+
   return (
-    <div
-      className={`flex items-center justify-between px-6 md:px-16 lg:px-24 xl:px-32 py-4 text-gray-600 border-b border-borderColor relative transition-all 
-        ${location.pathname === "/" && "bg-light"}`}
-    >
-      <Link to="/">
-        <img src={assets.logo} alt="logo" className="h-8" />
-      </Link>
-      <div
-        className={`max-sm:fixed max-sm:h-screen max-sm:w-full max-sm:left-0 sm:ml-5 max-sm:top-16 max-sm:border-t border-borderColor flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-5 max-sm:p-4 transition-all duration-300 z-50 
-        ${location.pathname === "/" ? "bg-light" : "bg-white"}
-        ${open ? "max-sm:translate-x-0" : "max-sm:-translate-x-full"}
-        `}
-      >
-        {menuLinks.map((link, index) => (
-          <Link
-            to={link.path}
-            key={index}
-            className="text-gray-600 hover:text-primary transition-all"
-          >
-            {link.name}
-          </Link>
-        ))}
+    <nav className="flex items-center justify-between py-4 mb-5 border-b border-b-gray-400 relative">
+      {/* Logo Area */}
+      <motion.img
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => navigate("/")}
+        className="w-44 cursor-pointer"
+        src={assets.logo}
+        alt="Logo"
+      />
 
-        <button
-          className="sm:hidden cursor-pointer hover:text-primary transition-all w-full text-left"
-          onClick={() => navigate("/owner")}
-        >
-          Dashboard
-        </button>
+      {/* Navigation Links - Desktop */}
+      <ul className="hidden md:flex md:gap-8 items-center font-medium uppercase text-sm">
+        {["Home", "Cars", "My Bookings"].map((item) => {
+          const path =
+            item === "Home" ? "/" : item === "Cars" ? "/doctors" : "/about";
+          return (
+            <NavLink
+              key={item}
+              to={path}
+              className="group flex flex-col items-center"
+            >
+              {({ isActive }) => (
+                <>
+                  <li
+                    className={`py-1 transition-colors ${isActive ? "text-[#5f6fff]" : "text-gray-700"}`}
+                  >
+                    {item.replace("_", " ")}
+                  </li>
+                  {/* Animated underline for active state */}
+                  {isActive ? (
+                    <motion.hr
+                      layoutId="navUnderline"
+                      className="border-none outline-none h-0.5 bg-[#5f6fff] w-full"
+                    />
+                  ) : (
+                    <div className="h-0.5 w-0 group-hover:w-full bg-gray-300 transition-all duration-300" />
+                  )}
+                </>
+              )}
+            </NavLink>
+          );
+        })}
+      </ul>
 
-        <button
-          className="sm:hidden cursor-pointer px-8 py-2 bg-primary hover:bg-primary-dull transition-all text-white rounded-lg w-full"
-          onClick={() => setShowLogin(true)}
-        >
-          Login
-        </button>
-
-        <div className="hidden md:flex items-center text-sm gap-2 border border-borderColor px-3 rounded-full max-w-56">
-          <input
-            type="text"
-            className="py-1.5 w-full bg-transparent outline-none placeholder-gray-500"
-            placeholder="Search products"
+      {/* Action Button Area */}
+      <div className="flex items-center gap-4">
+        {token ? (
+          <motion.img
+            whileHover={{ scale: 1.1 }}
+            src={assets.user_profile}
+            onClick={() => navigate("/profile")}
+            className="bg-[#5f6FFF] w-10 h-10 rounded-full cursor-pointer object-cover"
           />
-          <img src={assets.search_icon} alt="search" />
-        </div>
-
-        <div className="hidden sm:flex items-center gap-6">
-          <button
-            className="cursor-pointer hover:text-primary transition-all"
-            onClick={() => navigate("/owner")}
-          >
-            Dashboard
-          </button>
-
-          <button
-            className="cursor-pointer px-8 py-2 bg-primary hover:bg-primary-dull transition-all text-white rounded-lg"
-            onClick={() => setShowLogin(true)}
+        ) : (
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate("/login")}
+            className="bg-[#5f6FFF] text-white px-8 py-2.5 rounded-full font-light hidden md:block"
           >
             Login
-          </button>
-        </div>
+          </motion.button>
+        )}
+
+        {/* Mobile Menu Toggle */}
+        <img
+          className="w-6 md:hidden cursor-pointer"
+          src={assets.menu_icon}
+          alt="Menu"
+          onClick={() => setShowMenu(true)}
+        />
       </div>
 
-      <button className="sm:hidden cursor-pointer" aria-label="Menu">
-        <img
-          src={open ? assets.close_icon : assets.menu_icon}
-          alt="menu-icon"
-          onClick={() => setOpen(!open)}
-        />
-      </button>
-    </div>
+      {/* Mobile Menu Overlay */}
+      <AnimatePresence>
+        {showMenu && (
+          <>
+            {/* Dark Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowMenu(false)}
+              className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden"
+            />
+
+            {/* Sidebar Content */}
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed top-0 right-0 bottom-0 w-full max-w-xs bg-white shadow-2xl z-50 md:hidden p-6"
+            >
+              <div className="flex justify-between items-center mb-10">
+                <img src={assets.logo} className="w-32" alt="Logo" />
+                <img
+                  onClick={() => setShowMenu(false)}
+                  className="w-7 cursor-pointer"
+                  src={assets.close_icon}
+                  alt="Close"
+                />
+              </div>
+
+              <ul className="flex flex-col gap-6 text-lg font-medium">
+                {[
+                  ["HOME", "/"],
+                  ["CARS", "/collection"],
+                  ["MY BOOKINGS", "/about"],
+                ].map(([label, path]) => (
+                  <NavLink
+                    key={label}
+                    to={path}
+                    onClick={() => setShowMenu(false)}
+                    className={({ isActive }) =>
+                      `block border-b pb-2 ${isActive ? "text-[#5f6fff] border-[#5f6fff]" : "text-gray-600 border-gray-100"}`
+                    }
+                  >
+                    {label}
+                  </NavLink>
+                ))}
+              </ul>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </nav>
   );
-}
+};
 
 export default Navbar;

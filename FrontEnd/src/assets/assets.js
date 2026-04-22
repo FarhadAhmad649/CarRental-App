@@ -40,6 +40,7 @@ import car_image1 from "./car_image1.png"
 import car_image2 from "./car_image2.png"
 import car_image3 from "./car_image3.png"
 import car_image4 from "./car_image4.png"
+import boy from './boy.png'
 
 export const cityList = ['New York', 'Los Angeles', 'Houston', 'Chicago']
 
@@ -69,6 +70,7 @@ export const assets = {
     calendar_icon_colored,
     location_icon_colored,
     arrow_icon,
+    boy,
     star_icon,
     check_icon,
     tick_icon,
@@ -88,11 +90,6 @@ export const assets = {
     car_image4
 }
 
-export const menuLinks = [
-    { name: "Home", path: "/" },
-    { name: "Cars", path: "/cars" },
-    { name: "My Bookings", path: "/my-bookings" },
-]
 
 export const ownerMenuLinks = [
     { name: "Dashboard", path: "/owner", icon: dashboardIcon, coloredIcon: dashboardIconColored },
@@ -238,3 +235,26 @@ export const dummyDashboardData = {
     ],
     "monthlyRevenue": 840
 }
+
+export const dummyReviewsData = [
+    {
+        "image":"",
+        "name":"Emma Rodriguez",
+        "location":"New York, USA",
+        "stars":"5",
+        "comment":"I've rented cars from various companies, but the experience with CarRental was exceptional."
+    },
+    {
+        "image":"",
+        "name":"Andrie Rodriguez",
+        "location":"Jandual, USA",
+        "stars":"5",
+        "comment":"I've rented cars from various companies, but the experience with CarRental was exceptional."
+    },{
+        "image":"",
+        "name":"Latina Sriguez",
+        "location":"New Jersey, Juraselam",
+        "stars":"5",
+        "comment":"I've rented cars from various companies, but the experience with CarRental was exceptional."
+    }
+    ]
