@@ -29,9 +29,11 @@ const Navbar = () => {
 
       {/* Navigation Links - Desktop */}
       <ul className="hidden md:flex md:gap-8 items-center font-medium uppercase text-sm">
-        {["Home", "Cars", "My Bookings"].map((item) => {
-          const path =
-            item === "Home" ? "/" : item === "Cars" ? "/doctors" : "/about";
+        {["Home", "Cars", "My Bookings", "Contact Us"].map((item) => {
+          const path = item === "Home" ? "/"
+              : item === "Cars" ? "/cars"
+                : item === "Contact Us" ? "/contact-us"
+                  :"/my-bookings";
           return (
             <NavLink
               key={item}
@@ -121,18 +123,19 @@ const Navbar = () => {
                 />
               </div>
 
-              <ul className="flex flex-col gap-6 text-lg font-medium">
+              <ul className="flex flex-col gap-3  text-lg font-medium">
                 {[
                   ["HOME", "/"],
-                  ["CARS", "/collection"],
-                  ["MY BOOKINGS", "/about"],
+                  ["CARS", "/cars"],
+                  ["CONTACT_US", "/contact-us"],
+                  ["MY BOOKINGS", "/my-bookings"],
                 ].map(([label, path]) => (
                   <NavLink
                     key={label}
                     to={path}
                     onClick={() => setShowMenu(false)}
                     className={({ isActive }) =>
-                      `block border-b pb-2 ${isActive ? "text-[#5f6fff] border-[#5f6fff]" : "text-gray-600 border-gray-100"}`
+                      `inline-block mb-2 border-b-2 text-center ${isActive ? "text-[#5f6fff] border-[#5f6fff]" : "text-gray-600 border-gray-100"}`
                     }
                   >
                     {label}

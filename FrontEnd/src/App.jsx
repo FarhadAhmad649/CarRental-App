@@ -7,9 +7,10 @@ import CarDetails from './pages/CarDetails.jsx';
 import Home from './pages/Home.jsx';
 import MyBookings from './pages/MyBookings.jsx';
 import Footer from "./compnents/Footer.jsx";
+import Contact from "./pages/Contact.jsx";
 
 function App() {
-  const [showLogin, setShowLogin] = useState(false);
+  //const [showLogin, setShowLogin] = useState(false);
   const isOwnerPath = useLocation().pathname.startsWith("/owner");
   return (
     <div className="px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]">
@@ -19,8 +20,10 @@ function App() {
         <Route path="/cars" element={<Cars />} />
         <Route path="/car-details/:id" element={<CarDetails />} />
         <Route path="/my-bookings" element={<MyBookings />} />
+        <Route path="/contact-us" element={<Contact />} />
+        <Route path="/cars/:id" element={<CarDetails />} />
       </Routes>
-      <Footer/>
+      <Footer />
     </div>
   );
 }

@@ -14,9 +14,9 @@ const AppContextProvider = (props) => {
   );
 
   const [cars, setCars] = useState(dummyCarData);
-  const [dashboardData, setDashboardData] = useState(dummyDashboardData);
-  const [myBookings, setMyBookings] = useState(dummyMyBookingsData);
-  const [userData, setUserData] = useState(dummyUserData);
+  // const [dashboardData, setDashboardData] = useState(dummyDashboardData);
+  // const [myBookings, setMyBookings] = useState(dummyMyBookingsData);
+  // const [userData, setUserData] = useState(dummyUserData);
   const [reviews, setReviews] = useState(dummyReviewsData)
 
   const value = {
@@ -24,7 +24,7 @@ const AppContextProvider = (props) => {
     token,
     setToken,
     backendUrl,
-    cars,
+    cars,setCars,
     reviews, setReviews
   };
 

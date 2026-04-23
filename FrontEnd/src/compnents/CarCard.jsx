@@ -2,9 +2,11 @@ import React, { useContext } from "react";
 import { AppContext } from "../context/AppContext";
 import { assets } from "../assets/assets";
 import { motion } from "framer-motion";
+import { Navigate, useNavigate } from "react-router-dom";
 
 function CarCard() {
   const { cars, currencySymbol } = useContext(AppContext);
+  const navigate = useNavigate()
 
   // Animation Variants
   const containerVariants = {
@@ -48,7 +50,7 @@ function CarCard() {
         viewport={{ once: true, margin: "-100px" }}
         className="flex gap-4 overflow-x-auto pb-4 px-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent"
       >
-        {cars.map((car, index) => (
+        {cars.slice(0,4).map((car, index) => (
           <motion.div
             key={index}
             variants={itemVariants}
@@ -138,6 +140,7 @@ function CarCard() {
         <motion.div
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
+          onClick={()=> navigate('/cars')}
           className="flex px-6 py-2 gap-2 border border-gray-300 cursor-pointer rounded-sm hover:bg-gray-50 transition-colors"
         >
           <button className="text-sm font-medium">Explore all cars</button>
