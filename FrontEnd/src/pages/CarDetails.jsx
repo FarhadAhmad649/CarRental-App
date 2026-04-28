@@ -15,7 +15,7 @@ function CarDetails() {
   const [pickupDate, setPickupDate] = useState("");
   const [returnDate, setReturnDate] = useState("");
 
-  // ✅ Fix 1: Actually call fetchCar inside useEffect
+  // ............... Fetching car by id.....................
   const fetchCar = () => {
     // Instead of fetch(), find the car by ID in your local array
     const foundCar = dummyCarData.find((item) => item._id === id);
@@ -32,10 +32,12 @@ function CarDetails() {
     fetchCar();
   }, [id]);
 
-  // ✅ Fix 2: Loading/null checks in the component body, not inside fetchCar
+  // ........... Loading outcomes............
   if (loading) return <p className="p-8 text-center">Loading...</p>;
   if (!car) return <p className="p-8 text-center">Car not found.</p>;
 
+
+  // ........... Booking dates.................
   const today = new Date().toLocaleDateString("en-CA");
 
   const addOneDay = (dateStr) => {
@@ -48,9 +50,10 @@ function CarDetails() {
 
   const submitHandler = async (e) => {
     e.preventDefault();
-    console.log(pickupDate, returnDate, selectedLocation);
+    console.log(pickupDate, returnDate);
   };
 
+  // ......... Design purpose.................
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
@@ -121,7 +124,7 @@ function CarDetails() {
 
             {/* .........Car details........... */}
 
-            <div className="mb-4 px-4 flex gap-4 text-gray-900 font-sm">
+            <div className="mb-4 px-4 flex gap-4 text-gray-900 font-sm text-center">
               <div className="flex flex-col items-center w-35 gap-2 text-sm border border-gray-100 shadow-md rounded-md px-2 py-2 bg-gray-100">
                 <img src={assets.users_icon} alt="Seats" className="h-4 mr-2" />
                 <span>{car.seating_capacity} Seats</span>
