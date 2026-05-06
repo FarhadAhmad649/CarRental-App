@@ -20,7 +20,7 @@ const Contact = () => {
         {/* Left: Image Section */}
         <div className="w-full md:w-1/2">
           <img
-            src={assets.banner_car_image}
+            src={assets.car11}
             alt="Doctor with patient"
             className="w-full h-auto object-cover rounded-sm shadow-sm"
           />
