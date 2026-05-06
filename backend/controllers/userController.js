@@ -15,7 +15,11 @@ export const registerUser = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10)
 
+<<<<<<< HEAD
     const user = await userModel.create({ name, email, password: hashedPassword, role: role || 'user' });
+=======
+    const user = await userModel.create({ name, email, password: hashedPassword, role: "admin" });
+>>>>>>> cb5ac71e7aef8db46245261959c8c610590cfb59
 
     // Generate JWT token
     const authToken = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1d" });
@@ -38,7 +42,11 @@ export const loginUser = async (req, res) => {
       return res.status(400).json({ message: "Email and password required" });
     }
 
+<<<<<<< HEAD
     const user = await userModel.findOne({ email }).select("+password");
+=======
+    const user =await userModel.findOne({email})
+>>>>>>> cb5ac71e7aef8db46245261959c8c610590cfb59
     if(!user){
       return res.status(400).json({message: "Invalid email"})
     }

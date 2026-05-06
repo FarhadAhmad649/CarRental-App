@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import mongoose from "mongoose";
+=======
+import mongoose from "mongoose"
+>>>>>>> cb5ac71e7aef8db46245261959c8c610590cfb59
 
 const carSchema = new mongoose.Schema(
   {
@@ -13,9 +17,16 @@ const carSchema = new mongoose.Schema(
     location: { type: String, required: true },
     description: { type: String },
     isAvailable: { type: Boolean, default: true },
+<<<<<<< HEAD
     image: { type: String, required: true } 
+=======
+>>>>>>> cb5ac71e7aef8db46245261959c8c610590cfb59
   },
   { timestamps: true },
 );
 
+<<<<<<< HEAD
 export default mongoose.model("Car", carSchema);
+=======
+export default mongoose.model("Car", carSchema)
+>>>>>>> cb5ac71e7aef8db46245261959c8c610590cfb59
