@@ -3,17 +3,27 @@ import cors from "cors";
 import dotenv from "dotenv";
 import carRoutes from "./routes/carRoutes.js";
 import { connectDB } from "./config/db.js";
-import userRoutes from './routes/userRoutes.js'
+import userRoutes from "./routes/userRoutes.js";
+import bookingRoutes from './routes/bookingRoutes.js'
 
 // Load env variables first
 dotenv.config();
+
+const requiredEnvs = ["MONGO_URI", "JWT_SECRET"];
+const missingEnvs = requiredEnvs.filter((name) => !process.env[name]);
+if (missingEnvs.length) {
+  console.error(
+    `Missing required environment variables: ${missingEnvs.join(", ")}`,
+  );
+  process.exit(1);
+}
 
 // App config
 const app = express();
 const port = process.env.PORT || 8000;
 
 // Connect to DB
-connectDB()
+connectDB();
 
 // Middlewares
 app.use(cors());
@@ -22,7 +32,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // Api endpoints
 app.use("/api/car", carRoutes);
-app.use("/api/users", userRoutes)
+app.use("/api/users", userRoutes);
+app.use("/api/bookings", bookingRoutes);
 
 app.get("/", (req, res) => {
   res.send("Server is alive");

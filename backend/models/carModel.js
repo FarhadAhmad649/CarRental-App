@@ -1,4 +1,4 @@
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 
 const carSchema = new mongoose.Schema(
   {
@@ -13,8 +13,9 @@ const carSchema = new mongoose.Schema(
     location: { type: String, required: true },
     description: { type: String },
     isAvailable: { type: Boolean, default: true },
+    image: { type: String, required: true } 
   },
   { timestamps: true },
 );
 
-export default mongoose.model("Car", carSchema)
+export default mongoose.model("Car", carSchema);
