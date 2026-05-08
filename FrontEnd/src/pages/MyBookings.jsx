@@ -1,6 +1,8 @@
-import React, { useContext, useState } from "react";
-import { assets, dummyMyBookingsData } from "../assets/assets";
+import { toast } from "react-toastify";
+import React, { useContext, useState, useEffect } from "react";
+import { assets } from "../assets/assets";
 import { AppContext } from "../context/AppContext";
+import axios from 'axios'
 
 // ............... status for bookings
 const statusConfig = {
@@ -170,7 +172,47 @@ function BookingCard({ booking, index, currencySymbol }) {
 }
 
 function MyBookings() {
-  const { currencySymbol } = useContext(AppContext);
+  // 1. Pull the token and backendUrl from your context
+  const { currencySymbol, token, backendUrl } = useContext(AppContext);
+
+  // 2. Create state to hold the real database bookings
+  const [bookingsData, setBookingsData] = useState([]);
+
+  // 3. Fetch real user bookings from the backend
+  const fetchUserBookings = async () => {
+    try {
+      // Don't fetch if the user isn't logged in yet
+      if (!token) {
+        return;
+      }
+
+      // Hit the specific userorders route you created in your backend
+      const response = await axios.post(
+        `${backendUrl}/api/bookings/my-bookings`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      if (response.data.success || response.status === 200) {
+        // Save the orders and reverse them so the newest booking is at the top
+        setBookingsData(
+          response.data.orders?.reverse() || response.data.reverse() || [],
+        );
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        error.response?.data?.message || "Failed to fetch your bookings",
+      );
+    }
+  };
+
+  // 4. Run the fetch function automatically when the page loads or token changes
+  useEffect(() => {
+    fetchUserBookings();
+  }, [token, backendUrl]);
 
   return (
     <>
@@ -198,7 +240,8 @@ function MyBookings() {
 
           {/* Cards */}
           <div className="flex flex-col gap-4">
-            {dummyMyBookingsData.map((booking, index) => (
+            {/* Swapped dummy data for the real state variable */}
+            {bookingsData.map((booking, index) => (
               <BookingCard
                 key={index}
                 booking={booking}
@@ -209,7 +252,7 @@ function MyBookings() {
           </div>
 
           {/* Empty State */}
-          {dummyMyBookingsData.length === 0 && (
+          {bookingsData.length === 0 && (
             <div className="text-center py-20 text-gray-400">
               <p className="text-4xl mb-3">🚗</p>
               <p className="font-medium text-gray-500">No bookings yet</p>

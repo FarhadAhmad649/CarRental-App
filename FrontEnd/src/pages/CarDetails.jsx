@@ -3,13 +3,16 @@ import { assets, cityList, dummyCarData } from "../assets/assets";
 import { motion } from "framer-motion";
 import { AppContext } from "../context/AppContext";
 import { useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 function CarDetails() {
-  const { currencySymbol } = useContext(AppContext);
   const { id } = useParams();
   const [car, setCar] = useState(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+
+  const { currencySymbol, token, backendUrl } = useContext(AppContext);
 
   const [selectedLocation, setSelectedLocation] = useState("");
   const [pickupDate, setPickupDate] = useState("");
@@ -36,7 +39,6 @@ function CarDetails() {
   if (loading) return <p className="p-8 text-center">Loading...</p>;
   if (!car) return <p className="p-8 text-center">Car not found.</p>;
 
-
   // ........... Booking dates.................
   const today = new Date().toLocaleDateString("en-CA");
 
@@ -50,7 +52,70 @@ function CarDetails() {
 
   const submitHandler = async (e) => {
     e.preventDefault();
-    console.log(pickupDate, returnDate);
+
+    // 1. Ensure user is logged in
+    if (!token) {
+      toast.error("Please log in to book a car");
+      navigate("/login");
+      return;
+    }
+
+    // 2. Ensure dates are selected
+    if (!pickupDate || !returnDate) {
+      toast.error("Please select both pickup and return dates");
+      return;
+    }
+
+    // 3. Calculate total days and amount
+    const start = new Date(pickupDate);
+    const end = new Date(returnDate);
+    const timeDiff = end.getTime() - start.getTime();
+    const days = Math.ceil(timeDiff / (1000 * 3600 * 24)); // Convert milliseconds to days
+
+    if (days <= 0) {
+      toast.error("Return date must be after pickup date");
+      return;
+    }
+
+    const totalAmount = days * car.price;
+
+    try {
+      // 4. Package the data for the backend
+      // IMPORTANT: Make sure these keys match what your placeOrder controller expects in req.body!
+      const bookingData = {
+        carId: car._id,
+        pickupDate,
+        returnDate,
+        amount: totalAmount,
+      };
+
+      // 5. Send to the backend
+      const response = await axios.post(
+        `${backendUrl}/api/bookings/add`,
+        bookingData,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      if (
+        response.data.success ||
+        response.status === 200 ||
+        response.status === 201
+      ) {
+        toast.success(`Successfully booked for ${days} days!`);
+
+        // Redirect the user to the My Bookings page we just built!
+        navigate("/my-bookings");
+      } else {
+        toast.error(response.data.message || "Failed to book car");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        error.response?.data?.message || "An error occurred during booking",
+      );
+    }
   };
 
   // ......... Design purpose.................
@@ -90,10 +155,7 @@ function CarDetails() {
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
         >
-          <motion.div
-            
-            className="rounded-2xl"
-          >
+          <motion.div className="rounded-2xl">
             <div className="flex flex-col items-start shadow-md hover:shadow-xl rounded-xl bg-white  transition-shadow">
               <div className="relative h-75 w-full overflow-hidden rounded-xl">
                 <motion.img

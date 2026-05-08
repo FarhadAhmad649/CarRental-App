@@ -15,11 +15,8 @@ export const registerUser = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10)
 
-<<<<<<< HEAD
     const user = await userModel.create({ name, email, password: hashedPassword, role: role || 'user' });
-=======
-    const user = await userModel.create({ name, email, password: hashedPassword, role: "admin" });
->>>>>>> cb5ac71e7aef8db46245261959c8c610590cfb59
+
 
     // Generate JWT token
     const authToken = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1d" });
@@ -42,11 +39,8 @@ export const loginUser = async (req, res) => {
       return res.status(400).json({ message: "Email and password required" });
     }
 
-<<<<<<< HEAD
     const user = await userModel.findOne({ email }).select("+password");
-=======
-    const user =await userModel.findOne({email})
->>>>>>> cb5ac71e7aef8db46245261959c8c610590cfb59
+
     if(!user){
       return res.status(400).json({message: "Invalid email"})
     }
@@ -63,6 +57,41 @@ export const loginUser = async (req, res) => {
     
   } catch (error) {
     console.log(error)
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Admin login
+export const adminLogin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password required" });
+    }
+
+    const user = await userModel.findOne({ email }).select("+password");
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid email" });
+    }
+
+    const matchUser = await bcrypt.compare(password, user.password);
+    if (!matchUser) {
+      return res.status(400).json({ message: "Invalid password" });
+    }
+
+    if (user.role !== 'admin') {
+      return res.status(403).json({ message: "Access denied. Admin only." });
+    }
+
+    // Generate token
+    const authToken = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1d" });
+
+    res.status(200).json({ message: "Admin login successful", token: authToken });
+
+  } catch (error) {
+    console.log(error);
     res.status(500).json({ error: error.message });
   }
 };

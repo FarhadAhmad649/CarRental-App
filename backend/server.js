@@ -4,10 +4,8 @@ import dotenv from "dotenv";
 import carRoutes from "./routes/carRoutes.js";
 import { connectDB } from "./config/db.js";
 import userRoutes from "./routes/userRoutes.js";
-<<<<<<< HEAD
 import bookingRoutes from './routes/bookingRoutes.js'
-=======
->>>>>>> cb5ac71e7aef8db46245261959c8c610590cfb59
+
 
 // Load env variables first
 dotenv.config();
@@ -29,17 +27,22 @@ const port = process.env.PORT || 8000;
 connectDB();
 
 // Middlewares
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    credentials: true,
+  }),
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Api endpoints
 app.use("/api/car", carRoutes);
 app.use("/api/users", userRoutes);
-<<<<<<< HEAD
+
 app.use("/api/bookings", bookingRoutes);
-=======
->>>>>>> cb5ac71e7aef8db46245261959c8c610590cfb59
+
 
 app.get("/", (req, res) => {
   res.send("Server is alive");

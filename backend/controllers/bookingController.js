@@ -4,7 +4,7 @@ import Car from "../models/carModel.js";
 // Create a new booking
 export const createBooking = async (req, res) => {
   try {
-    const { carId, startDate, endDate } = req.body;
+    const { carId, pickupDate, returnDate, amount } = req.body;
     const userId = req.user.id; // Comes from your authMiddleware
 
     // 1. Find the car to get its price per day
@@ -19,27 +19,14 @@ export const createBooking = async (req, res) => {
         .json({ message: "Car is currently not available" });
     }
 
-    // 2. Calculate total days and total price
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const differenceInTime = end.getTime() - start.getTime();
-    const differenceInDays = Math.ceil(differenceInTime / (1000 * 3600 * 24));
-
-    if (differenceInDays <= 0) {
-      return res
-        .status(400)
-        .json({ message: "End date must be after start date" });
-    }
-
-    const totalPrice = differenceInDays * car.price;
 
     // 3. Create the booking
     const booking = await Booking.create({
       user: userId,
       car: carId,
-      startDate,
-      endDate,
-      totalPrice,
+      startDate: pickupDate,
+      endDate: returnDate,
+      totalPrice: amount,
       status: "pending",
     });
 
@@ -61,7 +48,7 @@ export const getUserBookings = async (req, res) => {
     const userId = req.user.id; // Comes from your authMiddleware
 
     // .populate('car') will fetch the actual car details instead of just the ID
-    const bookings = await Booking.find({ user: userId }).populate(
+    const bookings = await Booking.findOne({ user: userId }).populate(
       "car",
       "brand model price imageUrl",
     );
