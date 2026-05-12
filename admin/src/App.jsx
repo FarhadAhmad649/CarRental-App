@@ -4,8 +4,8 @@ import Sidebar from "./components/Sidebar";
 import { Route, Routes } from "react-router-dom";
 import Add from "./pages/AddCar";
 import List from "./pages/ManageCars";
-import Bookings from "./pages/Bookings";
 import Login from "./pages/Login";
+import AdminBookings from "./pages/AdminBookings";
 import { ToastContainer } from "react-toastify";
 
 export const backendUrl = import.meta.env.VITE_BACKEND_URL;
@@ -35,7 +35,7 @@ function App() {
               <Routes>
                 <Route path="/add" element={<Add token={token} />} />
                 <Route path="/list" element={<List token={token} />} />
-                <Route path="/bookings" element={<Bookings token={token} />} />
+                <Route path="/admin/bookings" element={<AdminBookings />} />
               </Routes>
             </div>
           </div>

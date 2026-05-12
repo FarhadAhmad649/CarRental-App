@@ -46,10 +46,13 @@ const Login = () => {
           setToken(response.data.token);
           localStorage.setItem("token", response.data.token);
           toast.success("Logged in successfully!");
+          
+
         } else {
           toast.error(response.data.message);
         }
       }
+
     } catch (error) {
       console.error(error);
       toast.error(error.response?.data?.message || "An error occurred");

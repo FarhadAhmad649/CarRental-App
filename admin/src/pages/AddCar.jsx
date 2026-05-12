@@ -77,6 +77,19 @@ const AddCar = ({ token }) => {
       onSubmit={onSubmitHandler}
       className="flex flex-col w-full items-start gap-3"
     >
+      <div
+        className="w-full flex"
+        style={{ animation: "fadeSlideUp 0.4s ease-out both" }}
+      >
+        <div className="flex flex-col items-center justify-center mb-10">
+          <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
+            Add New Car
+          </h2>
+          <p className="text-sm text-gray-400 mt-1">
+            Expand your market by adding a new car
+          </p>
+        </div>
+      </div>
       {/* IMAGE UPLOAD SECTION */}
       <div>
         <p className="mb-2">Upload Car Image</p>

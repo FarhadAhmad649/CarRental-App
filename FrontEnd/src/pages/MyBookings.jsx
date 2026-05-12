@@ -24,12 +24,6 @@ const statusConfig = {
     dot: "bg-red-400",
     border: "border-red-200",
   },
-  Completed: {
-    bg: "bg-blue-50",
-    text: "text-blue-600",
-    dot: "bg-blue-400",
-    border: "border-blue-200",
-  },
 };
 
 // .............. Card for a booking........................
@@ -178,34 +172,45 @@ function MyBookings() {
   // 2. Create state to hold the real database bookings
   const [bookingsData, setBookingsData] = useState([]);
 
-  // 3. Fetch real user bookings from the backend
   const fetchUserBookings = async () => {
     try {
-      // Don't fetch if the user isn't logged in yet
-      if (!token) {
-        return;
-      }
+      if (!token) return;
 
-      // Hit the specific userorders route you created in your backend
-      const response = await axios.post(
+      const response = await axios.get(
         `${backendUrl}/api/bookings/my-bookings`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
-      if (response.data.success || response.status === 200) {
-        // Save the orders and reverse them so the newest booking is at the top
-        setBookingsData(
-          response.data.orders?.reverse() || response.data.reverse() || [],
-        );
+
+      // 1. Bulletproof Array Checker (Handles findOne AND find)
+      let rawBookings = [];
+      if (Array.isArray(response.data)) {
+        rawBookings = response.data; // It is an array (find)
+      } else if (response.data && response.data._id) {
+        rawBookings = [response.data]; // It is a single object (findOne), so we wrap it in an array!
+      } else if (response.data && Array.isArray(response.data.bookings)) {
+        rawBookings = response.data.bookings; 
+        // Catch-all if backend sent { success: true, bookings: [...] }
+      }
+
+      const rawData = response.data.bookings || response.data;
+      if (Array.isArray(rawData) && rawData.length > 0) {
+        const formatted = rawData.map((dbBooking) => ({
+          ...dbBooking,
+          // Match your UI's expected variable names
+          car: dbBooking.carId || {},
+          pickupDate: dbBooking.startDate,
+          returnDate: dbBooking.endDate,
+          price: dbBooking.totalPrice,
+        }));
+
+        setBookingsData(formatted.reverse()); // 👈 This updates the UI
+      } else {
+        setBookingsData([]); // No bookings found
       }
     } catch (error) {
       console.error(error);
-      toast.error(
-        error.response?.data?.message || "Failed to fetch your bookings",
-      );
+      toast.error("Failed to fetch your bookings");
     }
   };
 

@@ -1,106 +1,222 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { backendUrl, currency } from "../App"; 
+import { backendUrl, currency } from "../App";
 import { toast } from "react-toastify";
 
 const ManageCars = ({ token }) => {
   const [list, setList] = useState([]);
+  const [editingId, setEditingId] = useState(null);
+  const [editData, setEditData] = useState({});
+  const [newImage, setNewImage] = useState(false); // Holds the new file
 
-  // 1. Fetch all cars from the database
   const fetchList = async () => {
     try {
-      // NOTE: Make sure this URL matches your backend route for listing cars!
       const response = await axios.get(`${backendUrl}/api/car/list`, {
-        headers: { Authorization: `Bearer ${token}` }, // Optional: if your route requires admin token
+        headers: { Authorization: `Bearer ${token}` },
       });
-
       if (response.data.success || response.status === 200) {
-        // Assuming your backend sends the array of cars inside response.data.cars
         setList(response.data.cars || response.data);
       }
     } catch (error) {
       console.error(error);
-      toast.error(error.response?.data?.message || "Failed to fetch cars");
+      toast.error("Failed to fetch cars");
     }
   };
 
-  // 2. Delete a car
-  const removeCar = async (id) => {
+  const startEdit = (item) => {
+    setEditingId(item._id);
+    setEditData({ ...item });
+    setNewImage(false); // Reset image state
+  };
+
+  const handleUpdate = async (id) => {
     try {
-      // NOTE: Make sure this URL matches your backend route for deleting cars!
+      const formData = new FormData();
+      formData.append("id", id);
+      formData.append("brand", editData.brand);
+      formData.append("model", editData.model);
+      formData.append("category", editData.category);
+      formData.append("price", editData.price);
+
+      // Only append image if a new one was selected
+      if (newImage) {
+        formData.append("image", newImage);
+      }
+
       const response = await axios.post(
-        `${backendUrl}/api/car/remove`,
-        { id },
+        `${backendUrl}/api/car/update`,
+        formData,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
         },
       );
 
-      if (response.data.success || response.status === 200) {
-        toast.success("Car removed successfully");
-        fetchList(); // Refresh the list automatically
+      if (response.data.success) {
+        toast.success("Car updated successfully");
+        setEditingId(null);
+        setNewImage(false);
+        fetchList();
       }
     } catch (error) {
-      console.error(error);
-      toast.error(error.response?.data?.message || "Failed to remove car");
+      toast.error("Failed to update car details");
     }
   };
 
-  // Run fetchList exactly once when the page loads
+  // ... (keep removeCar logic) ...
+
   useEffect(() => {
     fetchList();
   }, []);
-
   return (
     <>
-      <p className="mb-4 text-xl font-bold">All Cars List</p>
+      <p className="mb-4 text-xl font-bold">Manage Inventory</p>
 
       <div className="flex flex-col gap-2">
-        {/* Table Header */}
-        <div className="hidden md:grid grid-cols-[1fr_2fr_1fr_1fr_1fr] items-center py-2 px-4 border bg-gray-100 text-sm font-semibold">
+        <div className="hidden md:grid grid-cols-[1fr_2fr_1fr_1fr_1fr] items-center py-2 px-4 border bg-gray-100 text-sm font-semibold text-gray-600">
           <b>Image</b>
-          <b>Name</b>
+          <b>Name/Model</b>
           <b>Category</b>
-          <b>Price</b>
-          <b className="text-center">Action</b>
+          <b>Price Per Day</b>
+          <b className="text-center">Actions</b>
         </div>
 
-        {/* List of Cars */}
         {list.map((item, index) => (
           <div
-            className="grid grid-cols-[1fr_3fr_1fr] md:grid-cols-[1fr_2fr_1fr_1fr_1fr] items-center gap-4 py-2 px-4 border text-sm"
-            key={index}
+            className={`grid grid-cols-1 md:grid-cols-[1fr_2fr_1fr_1fr_1fr] items-center gap-4 py-3 px-4 border text-sm transition-all ${editingId === item._id ? "bg-blue-50 border-blue-200" : "bg-white"}`}
+            key={item._id || index}
           >
-            {/* Displaying the Cloudinary image URL */}
-            <img
-              className="w-16 h-16 object-cover rounded"
-              src={item.image}
-              alt={item.model}
-            />
+            {/* Image Upload Logic */}
+            <div className="relative w-16 h-12">
+              <label htmlFor={editingId === item._id ? "update-image" : ""}>
+                <img
+                  className={`w-16 h-12 object-cover rounded shadow-sm ${
+                    editingId === item._id
+                      ? "cursor-pointer border-2 border-blue-400 opacity-80"
+                      : ""
+                  }`}
+                  src={
+                    newImage && editingId === item._id
+                      ? URL.createObjectURL(newImage)
+                      : item.image
+                  }
+                  alt=""
+                />
+                {editingId === item._id && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <p className="text-[8px] bg-black/50 text-white px-1 rounded">
+                      Change
+                    </p>
+                  </div>
+                )}
+              </label>
+              <input
+                type="file"
+                id="update-image"
+                hidden
+                onChange={(e) => setNewImage(e.target.files[0])}
+              />
+            </div>
 
-            <p className="font-medium text-gray-800">
-              {item.brand} {item.model}
-            </p>
-            <p className="text-gray-600">{item.category}</p>
-            <p className="font-semibold text-green-600">
-              {currency}
-              {item.price}/day
-            </p>
+            {/* Editable Name Field */}
+            {editingId === item._id ? (
+              <div className="flex gap-1">
+                <input
+                  className="border px-2 py-1 rounded w-full"
+                  value={editData.brand}
+                  onChange={(e) =>
+                    setEditData({ ...editData, brand: e.target.value })
+                  }
+                />
+                <input
+                  className="border px-2 py-1 rounded w-full"
+                  value={editData.model}
+                  onChange={(e) =>
+                    setEditData({ ...editData, model: e.target.value })
+                  }
+                />
+              </div>
+            ) : (
+              <p className="font-medium">
+                {item.brand} {item.model}
+              </p>
+            )}
 
-            <button
-              onClick={() => removeCar(item._id)}
-              className="text-right md:text-center text-red-500 hover:text-red-700 font-medium cursor-pointer"
-            >
-              Remove
-            </button>
+            {/* Editable Category Field */}
+            {editingId === item._id ? (
+              <select
+                className="border px-2 py-1 rounded"
+                value={editData.category}
+                onChange={(e) =>
+                  setEditData({ ...editData, category: e.target.value })
+                }
+              >
+                <option value="Sedan">Sedan</option>
+                <option value="SUV">SUV</option>
+                <option value="Luxury">Luxury</option>
+              </select>
+            ) : (
+              <p className="text-gray-600">{item.category}</p>
+            )}
+
+            {/* Editable Price Field */}
+            {editingId === item._id ? (
+              <div className="flex items-center">
+                <span>{currency}</span>
+                <input
+                  type="number"
+                  className="border px-2 py-1 rounded w-20 ml-1"
+                  value={editData.price}
+                  onChange={(e) =>
+                    setEditData({ ...editData, price: e.target.value })
+                  }
+                />
+              </div>
+            ) : (
+              <p className="font-semibold text-emerald-600">
+                {currency}
+                {item.price}
+              </p>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex justify-center gap-4">
+              {editingId === item._id ? (
+                <>
+                  <button
+                    onClick={() => handleUpdate(item._id)}
+                    className="text-emerald-600 font-bold hover:underline cursor-pointer"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={() => setEditingId(null)}
+                    className="text-gray-500 hover:underline cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => startEdit(item)}
+                    className="text-blue-500 hover:text-blue-700 cursor-pointer"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => removeCar(item._id)}
+                    className="text-red-500 hover:text-red-700 cursor-pointer"
+                  >
+                    Remove
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         ))}
-
-        {list.length === 0 && (
-          <p className="text-center text-gray-500 mt-10">
-            No cars found. Go add some!
-          </p>
-        )}
       </div>
     </>
   );

@@ -19,11 +19,10 @@ export const createBooking = async (req, res) => {
         .json({ message: "Car is currently not available" });
     }
 
-
     // 3. Create the booking
     const booking = await Booking.create({
-      user: userId,
-      car: carId,
+      userId: userId, // ✅ Fixed
+      carId: carId, // ✅ Fixed
       startDate: pickupDate,
       endDate: returnDate,
       totalPrice: amount,
@@ -48,10 +47,7 @@ export const getUserBookings = async (req, res) => {
     const userId = req.user.id; // Comes from your authMiddleware
 
     // .populate('car') will fetch the actual car details instead of just the ID
-    const bookings = await Booking.findOne({ user: userId }).populate(
-      "car",
-      "brand model price imageUrl",
-    );
+    const bookings = await Booking.find({ userId: userId }).populate("carId");
 
     res.status(200).json(bookings);
   } catch (error) {
@@ -59,5 +55,45 @@ export const getUserBookings = async (req, res) => {
     res
       .status(500)
       .json({ error: "Failed to fetch bookings", message: error.message });
+  }
+};
+
+
+// ---------------- ADMIN CONTROLLERS ----------------
+
+// 1. Get all bookings for the Admin Panel
+export const getAllBookings = async (req, res) => {
+  try {
+    // Populate car details AND the user's name/email so the admin knows who booked it!
+    const bookings = await Booking.find()
+      .populate("carId")
+      .populate("userId", "name email"); 
+
+    res.status(200).json({ success: true, bookings });
+  } catch (error) {
+    console.error("Admin Get Bookings Error:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch all bookings" });
+  }
+};
+
+// 2. Update booking status (Pending -> Confirmed -> Cancelled)
+export const updateBookingStatus = async (req, res) => {
+  try {
+    const { bookingId, status } = req.body;
+
+    const updatedBooking = await Booking.findByIdAndUpdate(
+      bookingId,
+      { status },
+      { new: true } // Returns the updated document
+    );
+
+    if (!updatedBooking) {
+      return res.status(404).json({ success: false, message: "Booking not found" });
+    }
+
+    res.status(200).json({ success: true, message: "Status updated", booking: updatedBooking });
+  } catch (error) {
+    console.error("Update Status Error:", error);
+    res.status(500).json({ success: false, message: "Failed to update status" });
   }
 };

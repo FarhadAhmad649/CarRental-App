@@ -1,152 +1,101 @@
-import React, { useState, useContext } from "react";
+import React, { useContext, useState } from "react";
 import { assets } from "../assets/assets";
 import { NavLink, useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
-import { motion, AnimatePresence } from "framer-motion";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const { token, setToken } = useContext(AppContext);
+  const { token, setToken, userData } = useContext(AppContext);
   const [showMenu, setShowMenu] = useState(false);
 
-  // Animation for the Active Link HR
-  const activeLineVariants = {
-    hidden: { width: 0, opacity: 0 },
-    visible: { width: "60%", opacity: 1, transition: { duration: 0.3 } },
+  const logout = () => {
+    setToken(false);
+    localStorage.removeItem("token");
+    navigate("/login");
   };
 
   return (
-    <nav className="flex items-center justify-between py-4 mb-5 border-b border-b-gray-400 relative">
-      {/* Logo Area */}
-      <motion.img
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+    <div className="flex items-center justify-between text-sm py-4 mb-5 border-b border-b-gray-400">
+      {/* --- Logo --- */}
+      <img
         onClick={() => navigate("/")}
         className="w-44 cursor-pointer"
         src={assets.logo}
         alt="Logo"
       />
 
-      {/* Navigation Links - Desktop */}
-      <ul className="hidden md:flex md:gap-8 items-center font-medium uppercase text-sm">
-        {["Home", "Cars", "My Bookings", "Contact Us"].map((item) => {
-          const path = item === "Home" ? "/"
-              : item === "Cars" ? "/cars"
-                : item === "Contact Us" ? "/contact-us"
-                  :"/my-bookings";
-          return (
-            <NavLink
-              key={item}
-              to={path}
-              className="group flex flex-col items-center"
-            >
-              {({ isActive }) => (
-                <>
-                  <li
-                    className={`py-1 transition-colors ${isActive ? "text-[#5f6fff]" : "text-gray-700"}`}
-                  >
-                    {item.replace("_", " ")}
-                  </li>
-                  {/* Animated underline for active state */}
-                  {isActive ? (
-                    <motion.hr
-                      layoutId="navUnderline"
-                      className="border-none outline-none h-0.5 bg-[#5f6fff] w-full"
-                    />
-                  ) : (
-                    <div className="h-0.5 w-0 group-hover:w-full bg-gray-300 transition-all duration-300" />
-                  )}
-                </>
-              )}
-            </NavLink>
-          );
-        })}
+      {/* --- Navigation Links --- */}
+      <ul className="hidden md:flex items-start gap-7 font-medium uppercase">
+        <NavLink to="/">
+          <li className="py-1">Home</li>
+          <hr className="border-none outline-none h-0.5 bg-(--color-primary) w-3/5 m-auto hidden" />
+        </NavLink>
+        <NavLink to="/cars">
+          <li className="py-1">All Cars</li>
+          <hr className="border-none outline-none h-0.5 bg-(--color-primary) w-3/5 m-auto hidden" />
+        </NavLink>
+        <NavLink to="/about-us">
+          <li className="py-1">About Us</li>
+          <hr className="border-none outline-none h-0.5 bg-(--color-primary) w-3/5 m-auto hidden" />
+        </NavLink>
       </ul>
 
-      {/* Action Button Area */}
+      {/* --- Auth / Profile Section --- */}
       <div className="flex items-center gap-4">
-        {token ? (
-          <motion.img
-            whileHover={{ scale: 1.1 }}
-            src={assets.user_profile}
-            onClick={() => navigate("/profile")}
-            className="bg-[#5f6FFF] w-10 h-10 rounded-full cursor-pointer object-cover"
-          />
-        ) : (
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate("/login")}
-            className="bg-[#5f6FFF] text-white px-8 py-2.5 rounded-full font-light hidden md:block"
-          >
-            Login
-          </motion.button>
-        )}
-
-        {/* Mobile Menu Toggle */}
-        <img
-          className="w-6 md:hidden cursor-pointer"
-          src={assets.menu_icon}
-          alt="Menu"
-          onClick={() => setShowMenu(true)}
-        />
-      </div>
-
-      {/* Mobile Menu Overlay */}
-      <AnimatePresence>
-        {showMenu && (
-          <>
-            {/* Dark Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowMenu(false)}
-              className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden"
+        {token && userData ? (
+          <div className="flex items-center gap-2 cursor-pointer group relative">
+            <img
+              className="w-8 rounded-full"
+              src={userData.image || assets.profile_pic}
+              alt="profile"
             />
+            <img className="w-2.5" src={assets.dropdown_icon} alt="" />
 
-            {/* Sidebar Content */}
-            <motion.div
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 bottom-0 w-full max-w-xs bg-white shadow-2xl z-50 md:hidden p-6"
-            >
-              <div className="flex justify-between items-center mb-10">
-                <img src={assets.logo} className="w-32" alt="Logo" />
-                <img
-                  onClick={() => setShowMenu(false)}
-                  className="w-7 cursor-pointer"
-                  src={assets.close_icon}
-                  alt="Close"
-                />
-              </div>
+            {/* Dropdown Menu */}
+            <div className="absolute top-0 right-0 pt-14 text-base font-medium text-gray-600 z-20 hidden group-hover:block">
+              <div className="min-w-48 bg-stone-100 rounded flex flex-col gap-4 p-4 shadow-xl">
+                <p
+                  onClick={() => navigate("/user-profile")}
+                  className="hover:text-black cursor-pointer"
+                >
+                  My Profile
+                </p>
+                <p
+                  onClick={() => navigate("/my-bookings")}
+                  className="hover:text-black cursor-pointer"
+                >
+                  My Bookings
+                </p>
 
-              <ul className="flex flex-col gap-3  text-lg font-medium">
-                {[
-                  ["HOME", "/"],
-                  ["CARS", "/cars"],
-                  ["CONTACT_US", "/contact-us"],
-                  ["MY BOOKINGS", "/my-bookings"],
-                ].map(([label, path]) => (
-                  <NavLink
-                    key={label}
-                    to={path}
-                    onClick={() => setShowMenu(false)}
-                    className={({ isActive }) =>
-                      `inline-block mb-2 border-b-2 text-center ${isActive ? "text-[#5f6fff] border-[#5f6fff]" : "text-gray-600 border-gray-100"}`
-                    }
+                {/* 🔒 Admin Only Link */}
+                {userData.role === "admin" && (
+                  <p
+                    onClick={() => navigate("/admin/bookings")}
+                    className="hover:text-blue-600 font-bold cursor-pointer border-t pt-2"
                   >
-                    {label}
-                  </NavLink>
-                ))}
-              </ul>
-            </motion.div>
-          </>
+                    Admin Panel
+                  </p>
+                )}
+
+                <p
+                  onClick={logout}
+                  className="hover:text-red-500 cursor-pointer border-t pt-2"
+                >
+                  Logout
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={() => navigate("/login")}
+            className="bg-(--color-primary) text-white px-8 py-3 rounded-full font-light hidden md:block"
+          >
+            Create account
+          </button>
         )}
-      </AnimatePresence>
-    </nav>
+      </div>
+    </div>
   );
 };
 

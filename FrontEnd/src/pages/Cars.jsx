@@ -2,15 +2,56 @@ import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
 import { assets } from "../assets/assets";
+import { useEffect } from "react";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 function Cars() {
-  const navigate = useNavigate();
-  const { cars } = useContext(AppContext);
+
   const [hoveredId, setHoveredId] = useState(null);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
   const [priceFilter, setPriceFilter] = useState("default");
+
+  // ........ Fetch all cars...........
+  const { backendUrl, currencySymbol } = useContext(AppContext);
+  const [cars, setCars] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  // Fetch real data from MongoDB
+  const fetchAllCars = async () => {
+    try {
+      // Assuming your backend route to get all cars is a GET request to /api/car/list
+      // If it is a POST request, change .get to .post
+      const response = await axios.get(`${backendUrl}/api/car/list`);
+
+      if (response.data.success || response.status === 200) {
+        // Adjust response.data.cars based on exactly what your backend sends back
+        setCars(response.data.cars || response.data || []);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Failed to fetch cars");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAllCars();
+  }, [backendUrl]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-xl text-gray-500 animate-pulse">
+          Loading amazing cars...
+        </p>
+      </div>
+    );
+  }
 
   // ......... Filter Query.............
 

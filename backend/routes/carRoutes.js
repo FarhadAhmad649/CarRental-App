@@ -8,34 +8,19 @@ import { upload } from "../config/cloudinary.js"; // Import the upload middlewar
 
 const carRouter = express.Router();
 
-carRouter.get("/", carController.getCar);
-
 // Add upload.single('image') before the controller
 // 'image' is the field name you will use in Postman/Frontend when uploading the file
-carRouter.post(
-  "/add",
-  authMiddleware,
-  requireRole("admin"),
-  upload.single("image"), 
-  validateCar,
-  carController.createCar,
-);
+carRouter.post("/add",authMiddleware,requireRole("admin"),upload.single("image"), validateCar,carController.createCar,);
 
-carRouter.post(
-  "/remove",
-  authMiddleware,
-  requireRole("admin"),
-  carController.removeCar,
-);
+carRouter.post("/remove",authMiddleware,requireRole("admin"),carController.removeCar);
 
-carRouter.post(
-  "/update",
-  authMiddleware,
-  requireRole("admin"),
-  carController.updateCar,
-);
+// The name inside .single() MUST be "image"
+carRouter.post('/update', authMiddleware, requireRole("admin"), upload.single('image'), carController.updateCar);
 
 carRouter.get("/list", carController.carList);
+
+// Add this route to fetch a single car by its ID!
+carRouter.get("/:id", carController.getSingleCar);
 
 export default carRouter
 

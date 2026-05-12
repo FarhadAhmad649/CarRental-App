@@ -25,15 +25,16 @@ const Sidebar = () => {
           <span className="hidden md:block">Manage Cars</span>
         </NavLink>
 
-        {/* ORDERS LINK */}
+        {/* MANAGE BOOKINGS */}
         <NavLink
           className={({ isActive }) =>
             `flex items-center gap-3 border border-gray-300 border-r-0 px-3 py-2 rounded-l ${isActive ? "bg-gray-100 border-blue-500 text-blue-600" : ""}`
           }
-          to="/bookings"
+          to="/admin/bookings"
         >
-          <span className="hidden md:block">Bookings</span>
+          <span className="hidden md:block">Manage Bookings</span>
         </NavLink>
+
       </div>
     </div>
   );

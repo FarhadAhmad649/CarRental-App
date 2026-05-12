@@ -10,6 +10,8 @@ import Footer from "./compnents/Footer.jsx";
 import Contact from "./pages/Contact.jsx";
 import { ToastContainer } from "react-toastify";
 import Login from "./pages/Login.jsx";
+import UserProfile from "./pages/userProfile.jsx";
+import AboutUs from './pages/AboutUs.jsx'
 
 function App() {
   //const [showLogin, setShowLogin] = useState(false);
@@ -27,6 +29,8 @@ function App() {
         <Route path="/contact-us" element={<Contact />} />
         <Route path="/car-details/:id" element={<CarDetails />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/user-profile" element={<UserProfile />} />
+        <Route path="/about-us" element={<AboutUs />} />
       </Routes>
       {location.pathname !== "/login" && <Footer />}
     </div>

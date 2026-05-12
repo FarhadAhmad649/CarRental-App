@@ -19,16 +19,26 @@ function CarDetails() {
   const [returnDate, setReturnDate] = useState("");
 
   // ............... Fetching car by id.....................
-  const fetchCar = () => {
-    // Instead of fetch(), find the car by ID in your local array
-    const foundCar = dummyCarData.find((item) => item._id === id);
 
-    if (foundCar) {
-      setCar(foundCar);
-    } else {
+  const fetchCar = async () => {
+    try {
+      // 1. Pass the actual 'id' variable into the URL
+      const response = await axios.get(`${backendUrl}/api/car/${id}`);
+
+      // 2. Extract the actual car data from response.data
+      if (response.data.success || response.status === 200) {
+        // (Note: Use response.data.car if your backend sends { success: true, car: {...} })
+        setCar(response.data.car || response.data);
+      } else {
+        setCar(null);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to load car details");
       setCar(null);
+    } finally {
+      setLoading(false); // Ensure loading stops whether it succeeds or fails
     }
-    setLoading(false);
   };
 
   useEffect(() => {

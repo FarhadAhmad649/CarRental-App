@@ -1,18 +1,22 @@
 import jwt from "jsonwebtoken";
 
-export const authMiddleware = (req, res, next) => {
-  const authHeader = req.headers.authorization || req.headers.Authorization;
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Authorization header missing or invalid" });
+export const authMiddleware = async (req, res, next) => {
+  const { authorization } = req.headers;
+  if (!authorization) {
+    return res.json({ success: false, message: "Not Authorized. Login Again" });
   }
-
-  const token = authHeader.split(" ")[1];
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = { id: decoded.id, role: decoded.role };
+    const token = authorization.split(" ")[1]; // Gets the 'token' from 'Bearer token'
+    const token_decode = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Attach the ID and role to the request object for role checks
+    req.user = {
+      id: token_decode.id,
+      role: token_decode.role,
+    };
     next();
   } catch (error) {
-    console.error("Auth middleware error:", error.message);
-    return res.status(401).json({ message: "Invalid or expired token" });
+    console.log(error);
+    res.json({ success: false, message: error.message });
   }
 };

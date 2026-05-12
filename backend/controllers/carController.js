@@ -1,21 +1,27 @@
 import express from "express";
-import Car from "../models/carModel.js";
+import carModel from "../models/carModel.js";
 import { cloudinary } from "../config/cloudinary.js";
 
 
-// ......Get all cars
-export const getCar = async (req, res) => {
+// Fetch a single car by ID
+export const getSingleCar = async (req, res) => {
   try {
+    // req.params.id grabs the ID straight from the URL string
+    const carId = req.params.id; 
+    console.log(carId)
+    
+    // Search your MongoDB collection
+    const car = await carModel.findById(carId); 
 
-    const { id } = req.body
-    const cars = await Car.findById(id);
+    if (!car) {
+      return res.status(404).json({ success: false, message: "Car not found" });
+    }
 
-    res.json(cars);
+    res.status(200).json({ success: true, car });
+    
   } catch (error) {
-    console.log("Error fetching cars:", error.message);
-    res
-      .status(500)
-      .json({ error: "Database connection failed", message: error.message });
+    console.error(error);
+    res.status(500).json({ success: false, message: "Error fetching car details" });
   }
 };
 
@@ -65,21 +71,33 @@ export const removeCar = async (req, res) => {
 };
 
 // .......Update car.............
+
 export const updateCar = async (req, res) => {
   try {
-    const { id, ...updateData } = req.body;
-    await Car.findByIdAndUpdate(id, updateData);
-    res.status(200).json({ message: "Car updated successfully" });
+    const { id, brand, model, price, category } = req.body;
+    const imageFile = req.file;
+
+    let updateData = { brand, model, price, category };
+
+    if (imageFile) {
+      const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
+        resource_type: "image",
+      });
+      updateData.image = imageUpload.secure_url;
+    }
+
+    await carModel.findByIdAndUpdate(id, updateData);
+    res.json({ success: true, message: "Car Updated Successfully" });
   } catch (error) {
-    console.log("Error updating car:", error.message);
-    res.status(500).json({ error: "Failed to update car", message: error.message });
+    console.log(error);
+    res.json({ success: false, message: error.message });
   }
 };
 
 // .......Car list.............
 export const carList = async (req, res) => {
   try {
-    const cars = await Car.find();
+    const cars = await carModel.find();
     res.status(200).json(cars);
   } catch (error) {
     console.log("Error fetching car list:", error.message);

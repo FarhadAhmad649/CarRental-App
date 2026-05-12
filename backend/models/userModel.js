@@ -1,12 +1,21 @@
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
-    name : { type: String, required: true },
-    email : { type: String, required: true },
-    password : { type: String, required: true, select: false },
-    role: { type: String, enum: ["user", "admin"], default: "user"},
-  }
-);
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    role: { type: String, default: "user" },
+    // --- ADD THESE MISSING FIELDS ---
+    image: { type: String, default: "" },
+    phone: { type: String, default: "0000000000" },
+    gender: { type: String, default: "Not Specified" },
+    dob: { type: String, default: "Not Specified" },
+    address: { type: Object, default: { line1: "", line2: "" } },
+  },
+  { minimize: false },
+); // minimize: false ensures empty objects are saved
 
-export default mongoose.model("User", userSchema)
+const userModel = mongoose.models.user || mongoose.model("user", userSchema);
+
+export default userModel;
