@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { assets, cityList, dummyCarData } from "../assets/assets";
+import { assets, cityList } from "../assets/assets";
 import { motion } from "framer-motion";
 import { AppContext } from "../context/AppContext";
 import { useNavigate, useParams } from "react-router-dom";
@@ -17,17 +17,15 @@ function CarDetails() {
   const [selectedLocation, setSelectedLocation] = useState("");
   const [pickupDate, setPickupDate] = useState("");
   const [returnDate, setReturnDate] = useState("");
+  const [isAvailable, setIsAvailable] = useState(true);
 
   // ............... Fetching car by id.....................
 
   const fetchCar = async () => {
     try {
-      // 1. Pass the actual 'id' variable into the URL
       const response = await axios.get(`${backendUrl}/api/car/${id}`);
 
-      // 2. Extract the actual car data from response.data
       if (response.data.success || response.status === 200) {
-        // (Note: Use response.data.car if your backend sends { success: true, car: {...} })
         setCar(response.data.car || response.data);
       } else {
         setCar(null);
@@ -37,7 +35,7 @@ function CarDetails() {
       toast.error("Failed to load car details");
       setCar(null);
     } finally {
-      setLoading(false); // Ensure loading stops whether it succeeds or fails
+      setLoading(false);
     }
   };
 
@@ -45,11 +43,7 @@ function CarDetails() {
     fetchCar();
   }, [id]);
 
-  // ........... Loading outcomes............
-  if (loading) return <p className="p-8 text-center">Loading...</p>;
-  if (!car) return <p className="p-8 text-center">Car not found.</p>;
-
-  // ........... Booking dates.................
+  // ........... Booking dates & Availability (MOVED ABOVE EARLY RETURNS) .................
   const today = new Date().toLocaleDateString("en-CA");
 
   const addOneDay = (dateStr) => {
@@ -60,27 +54,58 @@ function CarDetails() {
 
   const minReturnDate = pickupDate ? addOneDay(pickupDate) : today;
 
+  const checkAvailability = async () => {
+    
+    console.log("Existing Car Bookings:", car?.bookings);
+
+    if (pickupDate && returnDate && car?.bookings) {
+      const reqStart = new Date(pickupDate).getTime();
+      const reqEnd = new Date(returnDate).getTime();
+
+      const hasOverlap = car.bookings.some((booking) => {
+        const bookedStart = new Date(booking.pickupDate).getTime();
+        const bookedEnd = new Date(booking.returnDate).getTime();
+        return reqStart <= bookedEnd && reqEnd >= bookedStart;
+      });
+
+      setIsAvailable(!hasOverlap);
+    } else {
+      setIsAvailable(true);
+    }
+  };
+
+  // ✅ This Hook is now safe because it is above the if(loading) statement
+  useEffect(() => {
+    checkAvailability();
+  }, [pickupDate, returnDate, car]);
+
+  // ........... Loading outcomes (MUST BE AFTER ALL HOOKS)............
+  if (loading) return <p className="p-8 text-center">Loading...</p>;
+  if (!car) return <p className="p-8 text-center">Car not found.</p>;
+
   const submitHandler = async (e) => {
     e.preventDefault();
 
-    // 1. Ensure user is logged in
     if (!token) {
       toast.error("Please log in to book a car");
       navigate("/login");
       return;
     }
 
-    // 2. Ensure dates are selected
     if (!pickupDate || !returnDate) {
       toast.error("Please select both pickup and return dates");
       return;
     }
 
-    // 3. Calculate total days and amount
+    if (!isAvailable) {
+      toast.error("This car is not available for the selected dates.");
+      return;
+    }
+
     const start = new Date(pickupDate);
     const end = new Date(returnDate);
     const timeDiff = end.getTime() - start.getTime();
-    const days = Math.ceil(timeDiff / (1000 * 3600 * 24)); // Convert milliseconds to days
+    const days = Math.ceil(timeDiff / (1000 * 3600 * 24));
 
     if (days <= 0) {
       toast.error("Return date must be after pickup date");
@@ -90,8 +115,6 @@ function CarDetails() {
     const totalAmount = days * car.price;
 
     try {
-      // 4. Package the data for the backend
-      // IMPORTANT: Make sure these keys match what your placeOrder controller expects in req.body!
       const bookingData = {
         carId: car._id,
         pickupDate,
@@ -99,7 +122,6 @@ function CarDetails() {
         amount: totalAmount,
       };
 
-      // 5. Send to the backend
       const response = await axios.post(
         `${backendUrl}/api/bookings/add`,
         bookingData,
@@ -114,8 +136,6 @@ function CarDetails() {
         response.status === 201
       ) {
         toast.success(`Successfully booked for ${days} days!`);
-
-        // Redirect the user to the My Bookings page we just built!
         navigate("/my-bookings");
       } else {
         toast.error(response.data.message || "Failed to book car");
@@ -134,15 +154,10 @@ function CarDetails() {
     visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
   };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-  };
-
   return (
     <div className="p-4">
       <motion.div
-        onClick={() => navigate("/cars")} // Replace with your actual route
+        onClick={() => navigate("/cars")}
         className="bg-gray-100 text-gray-900 hover:text-white hover:bg-(--color-primary) px-4 py-2 rounded-full flex justify-center items-center gap-2 cursor-pointer shadow-lg w-fit mb-5"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
@@ -153,10 +168,10 @@ function CarDetails() {
           className="w-3"
           src={assets.arrow_icon}
           alt="arrow"
-          style={{ transform: "rotate(180deg)" }} // Rotate if your arrow icon points right by default
+          style={{ transform: "rotate(180deg)" }}
         />
       </motion.div>
-      {/* ✅ Fix 3: Correct Tailwind arbitrary grid — use _ not - */}
+
       <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-6 items-start">
         {/* Car Details — scrolls naturally */}
         <motion.div
@@ -196,7 +211,7 @@ function CarDetails() {
 
             {/* .........Car details........... */}
 
-            <div className="mb-4 px-4 flex gap-4 text-gray-900 font-sm text-center">
+            <div className="mb-4 px-4 flex flex-wrap gap-4 text-gray-900 font-sm text-center">
               <div className="flex flex-col items-center w-35 gap-2 text-sm border border-gray-100 shadow-md rounded-md px-2 py-2 bg-gray-100">
                 <img src={assets.users_icon} alt="Seats" className="h-4 mr-2" />
                 <span>{car.seating_capacity} Seats</span>
@@ -279,10 +294,10 @@ function CarDetails() {
           </motion.div>
         </motion.div>
 
-        {/* Booking Form — ✅ sticky on md+ so it stays fixed while car section scrolls */}
+        {/* Booking Form */}
         <div className="md:sticky md:top-4">
           <motion.form
-            onSubmit={submitHandler} // ✅ use onSubmit, not action
+            onSubmit={submitHandler}
             className="flex flex-col gap-5 p-6 rounded-2xl shadow-[5px_8px_20px_rgba(0,0,0,0.1)] bg-white"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -322,15 +337,26 @@ function CarDetails() {
               />
             </div>
 
+            {/* ✅ ADDED: Unavailable Warning UI */}
+            {!isAvailable && (
+              <div className="p-3 bg-red-100 text-red-700 rounded-md border border-red-200 text-sm">
+                <p className="font-medium">
+                  Car is unavailable for these dates.
+                </p>
+              </div>
+            )}
+
             <motion.button
               type="submit"
-              className="bg-(--color-primary) px-4 py-2 rounded-full flex justify-center items-center gap-2 text-white cursor-pointer shadow-lg"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              disabled={!isAvailable}
+              className={`px-4 py-2 rounded-full flex justify-center items-center gap-2 text-white shadow-lg transition-colors
+                ${!isAvailable ? "bg-gray-400 cursor-not-allowed" : "bg-(--color-primary) cursor-pointer"}`}
+              whileHover={isAvailable ? { scale: 1.05 } : {}}
+              whileTap={isAvailable ? { scale: 0.95 } : {}}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
             >
               <img src={assets.search_icon} alt="search" />
-              Book Now
+              {isAvailable ? "Book Now" : "Unavailable"}
             </motion.button>
           </motion.form>
         </div>

@@ -12,13 +12,18 @@ import { ToastContainer } from "react-toastify";
 import Login from "./pages/Login.jsx";
 import UserProfile from "./pages/userProfile.jsx";
 import AboutUs from './pages/AboutUs.jsx'
+import ScrollToTop from "./compnents/scrollToTop.jsx";
+
 
 function App() {
   //const [showLogin, setShowLogin] = useState(false);
-  const isOwnerPath = useLocation().pathname.startsWith("/owner");
+  const location = useLocation();
+  const isOwnerPath = location.pathname.startsWith("/owner");
   return (
     <div className="px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]">
       <ToastContainer position="top-right" />
+
+      <ScrollToTop/>
 
       {location.pathname !== "/login" && <Navbar />}
 
@@ -32,6 +37,7 @@ function App() {
         <Route path="/user-profile" element={<UserProfile />} />
         <Route path="/about-us" element={<AboutUs />} />
       </Routes>
+      
       {location.pathname !== "/login" && <Footer />}
     </div>
   );

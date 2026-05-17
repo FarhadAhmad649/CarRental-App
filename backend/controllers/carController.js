@@ -1,6 +1,7 @@
 import express from "express";
 import carModel from "../models/carModel.js";
 import { cloudinary } from "../config/cloudinary.js";
+import bookingModel from '../models/bookingModel.js'
 
 
 // Fetch a single car by ID
@@ -17,7 +18,16 @@ export const getSingleCar = async (req, res) => {
       return res.status(404).json({ success: false, message: "Car not found" });
     }
 
-    res.status(200).json({ success: true, car });
+    const existingBookings = await bookingModel.find({ carId: carId, status: {$in: ["pending", "confirmed"]} });
+
+    const formattedBookings = existingBookings.map((booking) => ({
+      pickupDate: booking.startDate,
+      returnDate: booking.endDate,
+    }));
+
+    res.status(200).json({ success: true, car: {
+      ...car.toObject(), bookings: formattedBookings
+    } });
     
   } catch (error) {
     console.error(error);
@@ -71,7 +81,6 @@ export const removeCar = async (req, res) => {
 };
 
 // .......Update car.............
-
 export const updateCar = async (req, res) => {
   try {
     const { id, brand, model, price, category } = req.body;

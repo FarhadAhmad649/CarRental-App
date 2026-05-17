@@ -5,6 +5,7 @@ import carRoutes from "./routes/carRoutes.js";
 import { connectDB } from "./config/db.js";
 import userRoutes from "./routes/userRoutes.js";
 import bookingRoutes from './routes/bookingRoutes.js'
+import reviewRoutes from './routes/reviewRoutes.js'
 
 
 // Load env variables first
@@ -42,6 +43,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/car", carRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/bookings", bookingRoutes);
+app.use("/api/reviews", reviewRoutes)
 
 
 app.get("/", (req, res) => {
