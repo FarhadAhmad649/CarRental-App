@@ -30,11 +30,21 @@ function Cars() {
     try {
       const response = await axios.get(`${backendUrl}/api/car/list`);
 
+      console.log("API RESPONSE:", response);
+      console.log("RESPONSE DATA:", response.data);
+      console.log("CARS FROM API:", response.data.cars);
+
       if (response.data.success || response.status === 200) {
-        setCars(response.data.cars || response.data || []);
+        const carsData = response.data.cars || response.data || [];
+
+        console.log("SETTING CARS:", carsData);
+
+        setCars(carsData);
       }
     } catch (error) {
-      console.error(error);
+      console.error("CAR FETCH ERROR:", error);
+      console.error("ERROR RESPONSE:", error.response?.data);
+
       toast.error(error.response?.data?.message || "Failed to fetch cars");
     } finally {
       setLoading(false);

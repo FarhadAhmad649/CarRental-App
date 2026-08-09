@@ -1,37 +1,45 @@
 import express from "express";
 import carModel from "../models/carModel.js";
 import { cloudinary } from "../config/cloudinary.js";
-import bookingModel from '../models/bookingModel.js'
-
+import bookingModel from "../models/bookingModel.js";
+import mongoose from "mongoose";
 
 // Fetch a single car by ID
 export const getSingleCar = async (req, res) => {
   try {
     // req.params.id grabs the ID straight from the URL string
-    const carId = req.params.id; 
-    console.log(carId)
-    
+    const carId = req.params.id;
+    console.log(carId);
+
     // Search your MongoDB collection
-    const car = await carModel.findById(carId); 
+    const car = await carModel.findById(carId);
 
     if (!car) {
       return res.status(404).json({ success: false, message: "Car not found" });
     }
 
-    const existingBookings = await bookingModel.find({ carId: carId, status: {$in: ["pending", "confirmed"]} });
+    const existingBookings = await bookingModel.find({
+      carId: carId,
+      status: { $in: ["pending", "confirmed"] },
+    });
 
     const formattedBookings = existingBookings.map((booking) => ({
       pickupDate: booking.startDate,
       returnDate: booking.endDate,
     }));
 
-    res.status(200).json({ success: true, car: {
-      ...car.toObject(), bookings: formattedBookings
-    } });
-    
+    res.status(200).json({
+      success: true,
+      car: {
+        ...car.toObject(),
+        bookings: formattedBookings,
+      },
+    });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: "Error fetching car details" });
+    res
+      .status(500)
+      .json({ success: false, message: "Error fetching car details" });
   }
 };
 
@@ -57,9 +65,8 @@ export const createCar = async (req, res) => {
       image: image,
     };
 
-    const car = await Car.create(carData);
+    const car = await carModel.create(carData);
     res.status(201).json({ message: "Car has been added", car });
-
   } catch (error) {
     console.log("Error creating car:", error.message);
     res
@@ -72,11 +79,13 @@ export const createCar = async (req, res) => {
 export const removeCar = async (req, res) => {
   try {
     const { id } = req.body;
-    await Car.findByIdAndDelete(id);
+    await carModel.findByIdAndDelete(id);
     res.status(200).json({ message: "Car removed successfully" });
   } catch (error) {
     console.log("Error removing car:", error.message);
-    res.status(500).json({ error: "Failed to remove car", message: error.message });
+    res
+      .status(500)
+      .json({ error: "Failed to remove car", message: error.message });
   }
 };
 
@@ -106,12 +115,22 @@ export const updateCar = async (req, res) => {
 // .......Car list.............
 export const carList = async (req, res) => {
   try {
-    const cars = await carModel.find();
-    res.status(200).json(cars);
+    const cars = await carModel.find({});
+
+    console.log("Database:", mongoose.connection.name);
+    console.log("Collection:", carModel.collection.name);
+    console.log("Cars found:", cars.length);
+
+    res.status(200).json({
+      success: true,
+      cars: cars,
+    });
   } catch (error) {
     console.log("Error fetching car list:", error.message);
-    res.status(500).json({ error: "Failed to fetch car list", message: error.message });
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
-
-

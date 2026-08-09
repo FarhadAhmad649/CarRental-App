@@ -17,20 +17,27 @@ const AppContextProvider = (props) => {
   // 1. Fetch all the cars from db
   const fetchCars = async () => {
     try {
+      console.log("Fetching:", backendUrl + "/api/car/list");
+
       const { data } = await axios.get(backendUrl + "/api/car/list");
+
+      console.log("Cars API response:", data);
 
       if (Array.isArray(data)) {
         setCars(data);
-      }
-      // Fallback: If it sends an object with a success message
-      else if (data.success) {
+      } else if (data.success) {
         setCars(data.cars || data.data || []);
       } else {
-        toast.error(data.message);
+        toast.error(data.message || "Couldn't fetch cars");
       }
     } catch (error) {
-      console.error("Error fetching cars", error);
-      toast.error("Failed to load cars from database");
+      console.error("Error fetching cars:", error);
+      console.error("Response:", error.response?.data);
+      console.error("Status:", error.response?.status);
+
+      toast.error(
+        error.response?.data?.message || "Failed to load cars from database",
+      );
     }
   };
 

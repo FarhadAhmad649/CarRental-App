@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { AppContext } from "../context/AppContext";
 
 const Login = () => {
-  const { backendUrl, token, setToken } = useContext(AppContext);
+  const { backendUrl, token, setToken, userData } = useContext(AppContext);
   const navigate = useNavigate();
 
   // Toggle between Login and Sign Up
@@ -46,25 +46,22 @@ const Login = () => {
           setToken(response.data.token);
           localStorage.setItem("token", response.data.token);
           toast.success("Logged in successfully!");
-          
-
         } else {
           toast.error(response.data.message);
         }
       }
-
     } catch (error) {
       console.error(error);
       toast.error(error.response?.data?.message || "An error occurred");
     }
   };
 
-  // If the user successfully gets a token, automatically redirect them to the home page (or cars page)
+  // If the user has a valid token + profile loaded, redirect away from login
   useEffect(() => {
-    if (token) {
+    if (token && userData) {
       navigate("/");
     }
-  }, [token, navigate]);
+  }, [token, userData, navigate]);
 
   return (
     <form
